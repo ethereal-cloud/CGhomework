@@ -123,7 +123,6 @@ namespace FluidSimulation
                 return;
             }
 
-            // Bucket sort by blockId for O(N) grouping.
             std::vector<uint32_t> counts(totalBlocks, 0);
             for (auto &p : particles)
             {

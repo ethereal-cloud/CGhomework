@@ -182,6 +182,25 @@ namespace FluidSimulation
                              Lagrangian3dPara::gravityY,
                              Lagrangian3dPara::gravityZ);     // 重力
 
+            // 运动球体参数（未开启时保持默认值）
+            Lagrangian3dPara::movingSphereTime += dt;
+            float sphereTime = Lagrangian3dPara::movingSphereTime;
+            bool useMovingSphere = Lagrangian3dPara::enableMovingSphere;
+            glm::vec3 sphereCenter(0.0f);
+            glm::vec3 sphereVelocity(0.0f);
+            float sphereRadius = 0.0f;
+            if (useMovingSphere)
+            {
+                float omega = 2.0f * static_cast<float>(M_PI) * Lagrangian3dPara::movingSphereFrequency;
+                float phase = std::sin(omega * sphereTime);
+                float velPhase = std::cos(omega * sphereTime) * omega;
+                glm::vec3 baseCenter = Lagrangian3dPara::movingSphereCenter * Lagrangian3dPara::scale;
+                glm::vec3 amplitude = Lagrangian3dPara::movingSphereAmplitude * Lagrangian3dPara::scale;
+                sphereCenter = baseCenter + amplitude * phase;
+                sphereVelocity = amplitude * velPhase;
+                sphereRadius = Lagrangian3dPara::movingSphereRadius * Lagrangian3dPara::scale;
+            }
+
             // 粒子质量：假设初始时每个粒子占据 particleDiameter³ 的体积，密度为 rho0
             float particleMass = rho0 * mPs.particleVolume;
 
@@ -356,11 +375,34 @@ namespace FluidSimulation
             //
             float eps = Lagrangian3dPara::eps;
             float attenuation = Lagrangian3dPara::velocityAttenuation;
+            float minSphereDist = sphereRadius + mPs.particleRadius;
+            float minSphereDist2 = minSphereDist * minSphereDist;
 
             #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 particle3d &pi = mPs.particles[i];
+
+                // 运动球体碰撞
+                if (useMovingSphere && sphereRadius > 0.0f)
+                {
+                    glm::vec3 toParticle = pi.position - sphereCenter;
+                    float dist2 = glm::dot(toParticle, toParticle);
+                    if (dist2 < minSphereDist2)
+                    {
+                        float dist = std::sqrt(dist2);
+                        glm::vec3 normal = (dist > 1e-6f) ? (toParticle / dist) : glm::vec3(0.0f, 1.0f, 0.0f);
+                        pi.position = sphereCenter + normal * minSphereDist;
+
+                        glm::vec3 relVel = pi.velocity - sphereVelocity;
+                        float vn = glm::dot(relVel, normal);
+                        if (vn < 0.0f)
+                        {
+                            relVel -= (1.0f + attenuation) * vn * normal;
+                        }
+                        pi.velocity = relVel + sphereVelocity;
+                    }
+                }
 
                 // X 方向边界
                 if (pi.position.x < mPs.lowerBound.x + eps)

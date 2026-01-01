@@ -31,6 +31,7 @@ namespace FluidSimulation
                 shutDown();
             }
             Glb::Timer::getInstance().clear();
+            Lagrangian3dPara::movingSphereTime = 0.0f;
 
             renderer = new Renderer();
             renderer->init();

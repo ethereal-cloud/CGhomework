@@ -208,6 +208,14 @@ namespace Lagrangian3dPara
     extern float stiffness;
     extern float exponent;
     extern float viscosity;
+
+    // ==================== 运动固体（球体） ====================
+    extern bool enableMovingSphere;          // 是否启用运动球体
+    extern glm::vec3 movingSphereCenter;     // 球体基准中心（未缩放坐标）
+    extern glm::vec3 movingSphereAmplitude;  // 运动幅度（未缩放坐标）
+    extern float movingSphereRadius;         // 球体半径（未缩放坐标）
+    extern float movingSphereFrequency;      // 运动频率（Hz）
+    extern float movingSphereTime;           // 仿真时间（秒）
 }
 
 // 资源路径

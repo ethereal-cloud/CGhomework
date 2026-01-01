@@ -150,6 +150,14 @@ namespace Lagrangian3dPara
     float stiffness = 70.0f;        // 刚度（与2D一致）
     float exponent = 7.0f;          // 压力指数
     float viscosity = 0.02f;        // 粘度（增大到与2D相近的水平）
+
+    // ==================== 运动固体（球体） ====================
+    bool enableMovingSphere = true;
+    glm::vec3 movingSphereCenter = glm::vec3(0.5f, 0.5f, 0.3f);
+    glm::vec3 movingSphereAmplitude = glm::vec3(0.0f, 0.0f, -0.15f);
+    float movingSphereRadius = 0.12f;
+    float movingSphereFrequency = 0.5f;
+    float movingSphereTime = 0.0f;
 }
 
 // 存储系统的所有组件
