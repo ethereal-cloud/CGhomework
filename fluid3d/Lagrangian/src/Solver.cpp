@@ -15,10 +15,15 @@
  *
  * 主要步骤：
  * 1. 密度计算：使用 Poly6 核函数
+ * 1b. 颜色场计算：用于表面张力（可选）
  * 2. 压力计算：使用 Tait 状态方程
- * 3. 加速度计算：压力梯度(Spiky核) + 粘性力(Viscosity核) + 重力
+ * 3. 加速度计算：压力梯度(Spiky核) + 粘性力(Viscosity核) + 重力 + 表面张力（可选）
  * 4. 时间积分：半隐式欧拉方法
  * 5. 边界处理：反弹碰撞
+ *
+ * 表面张力实现：
+ * 基于 Müller et al. (2003) 的 SPH 表面张力模型
+ * 通过颜色场计算曲率，在流体表面施加最小化表面积的力
  */
 
 #include "fluid3d/Lagrangian/include/Solver.h"
@@ -315,6 +320,51 @@ namespace FluidSimulation
                 pi.density = (std::max)(density, rho0 * 0.01f);
             }
 
+            // ==================== 步骤 1b: 计算颜色场（表面张力用） ====================
+            //
+            // 表面张力需要识别流体表面，通过颜色场来标记：
+            //   C_i = Σ_j (m_j / ρ_j) × W(r_i - r_j)
+            // 颜色场梯度：∇C_i = Σ_j (m_j / ρ_j) × ∇W(r_i - r_j)
+            // 颜色场拉普拉斯：∇²C_i = Σ_j (m_j / ρ_j) × ∇²W(|r_i - r_j|)
+            //
+            bool computeSurfaceTension = Lagrangian3dPara::enableSurfaceTension;
+            
+            if (computeSurfaceTension)
+            {
+                #pragma omp parallel for
+                for (int i = 0; i < numParticles; i++)
+                {
+                    particle3d &pi = mPs.particles[i];
+                    glm::vec3 colorGrad(0.0f);
+                    float colorLap = 0.0f;
+
+                    for (int offset : mPs.blockIdOffs)
+                    {
+                        int neighborBlockId = pi.blockId + offset;
+                        if (neighborBlockId < 0 || neighborBlockId >= mPs.blockExtens.size())
+                            continue;
+
+                        glm::uvec2 extent = mPs.blockExtens[neighborBlockId];
+                        for (uint32_t j = extent.x; j < extent.y; j++)
+                        {
+                            if (i == j) continue;
+                            particle3d &pj = mPs.particles[j];
+                            glm::vec3 r = pi.position - pj.position;
+                            float rLen = glm::length(r);
+
+                            if (rLen < h && rLen > 1e-6f)
+                            {
+                                float weight = particleMass / pj.density;
+                                colorGrad += weight * spikyGrad(r);
+                                colorLap += weight * viscosityLaplacian(rLen);
+                            }
+                        }
+                    }
+                    pi.colorGradient = colorGrad;
+                    pi.colorLaplacian = colorLap;
+                }
+            }
+
             // ==================== 步骤 2: 计算压力 ====================
             //
             // 使用 Tait 状态方程（适用于弱可压缩流体）：
@@ -395,8 +445,24 @@ namespace FluidSimulation
                     }
                 }
 
-                // 合成总加速度
+                // 合成总加速度：压力 + 粘性 + 重力
                 pi.accleration = pressureAcc + viscosity * viscosityAcc + gravity;
+
+                // 表面张力加速度（如果启用）
+                if (computeSurfaceTension)
+                {
+                    float gradLen = glm::length(pi.colorGradient);
+                    float threshold = Lagrangian3dPara::surfaceThreshold;
+                    
+                    if (gradLen > threshold)
+                    {
+                        glm::vec3 normal = pi.colorGradient / gradLen;
+                        float curvature = -pi.colorLaplacian / gradLen;
+                        float sigma = Lagrangian3dPara::surfaceTension;
+                        glm::vec3 surfaceTensionForce = -sigma * curvature * normal;
+                        pi.accleration += surfaceTensionForce / pi.density;
+                    }
+                }
             }
 
             // ==================== 步骤 4: 时间积分 ====================

@@ -209,6 +209,11 @@ namespace Lagrangian3dPara
     extern float exponent;
     extern float viscosity;
 
+    // ==================== 表面张力 ====================
+    extern bool enableSurfaceTension;        // 是否启用表面张力
+    extern float surfaceTension;             // 表面张力系数 σ (N/m)
+    extern float surfaceThreshold;           // 表面检测阈值
+
     // ==================== 运动固体（搅拌棒） ====================
     extern bool enableStirrer;               // 是否启用搅拌棒
     extern glm::vec3 stirrerCenter;          // 基准中心（未缩放坐标）

@@ -20,6 +20,9 @@ namespace FluidSimulation
             alignas(4) float_t pressure;         // 压力
             alignas(4) float_t pressDivDens2;    // 压力除以密度平方
             alignas(4) uint32_t blockId;         // 所在块的ID
+            // 表面张力相关
+            alignas(16) glm::vec3 colorGradient; // 颜色场梯度
+            alignas(4) float_t colorLaplacian;   // 颜色场拉普拉斯
         };
 
         // 粒子系统类

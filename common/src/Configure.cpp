@@ -151,6 +151,11 @@ namespace Lagrangian3dPara
     float exponent = 7.0f;          // 压力指数
     float viscosity = 0.02f;        // 粘度（增大到与2D相近的水平）
 
+    // ==================== 表面张力 ====================
+    bool enableSurfaceTension = true;        // 启用表面张力
+    float surfaceTension = 0.0728f;          // 水的表面张力系数(20°C): 0.0728 N/m
+    float surfaceThreshold = 0.7f;           // 表面检测阈值（梯度归一化值）
+
     // ==================== 运动固体（搅拌棒） ====================
     bool enableStirrer = true;
     glm::vec3 stirrerCenter = glm::vec3(0.42f, 0.42f, 0.0f);
