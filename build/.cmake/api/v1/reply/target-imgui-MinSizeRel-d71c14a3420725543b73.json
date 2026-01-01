@@ -1,0 +1,225 @@
+{
+	"archive" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/machine:x64",
+				"role" : "flags"
+			}
+		]
+	},
+	"artifacts" : 
+	[
+		{
+			"path" : "third_party/imgui/MinSizeRel/imgui.lib"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"include_directories",
+			"target_include_directories"
+		],
+		"files" : 
+		[
+			"third_party/imgui/CMakeLists.txt",
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 9,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 9,
+				"parent" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 10,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O1 /Ob1 /DNDEBUG"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./third_party/imgui/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./third_party/glfw/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./third_party/glad/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./third_party/boost_1_84_0"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./third_party/glm"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./third_party/stb"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./common/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./fluid2d"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./fluid2d/Lagrangian/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./fluid2d/Eulerian/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./fluid3d"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./fluid3d/Lagrangian/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./fluid3d/Eulerian/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/./ui/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/."
+				},
+				{
+					"backtrace" : 4,
+					"path" : "E:/workspace/fluid-sim-comment-master/code/third_party/imgui/./include"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "imgui::@0bd0160a8608684c225b",
+	"name" : "imgui",
+	"nameOnDisk" : "imgui.lib",
+	"paths" : 
+	{
+		"build" : "third_party/imgui",
+		"source" : "third_party/imgui"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "third_party/imgui/src/imgui.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "third_party/imgui/src/imgui_demo.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "third_party/imgui/src/imgui_draw.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "third_party/imgui/src/imgui_impl_glfw.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "third_party/imgui/src/imgui_impl_opengl3.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "third_party/imgui/src/imgui_tables.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "third_party/imgui/src/imgui_widgets.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

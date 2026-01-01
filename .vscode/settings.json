@@ -1,0 +1,10 @@
+{
+    "cmake.configureEnvironment": {
+        "TEMP": "C:\\Users\\LiuYantong\\AppData\\Local\\Temp",
+        "TMP": "C:\\Users\\LiuYantong\\AppData\\Local\\Temp"
+    },
+    "cmake.buildEnvironment": {
+        "TEMP": "C:\\Users\\LiuYantong\\AppData\\Local\\Temp",
+        "TMP": "C:\\Users\\LiuYantong\\AppData\\Local\\Temp"
+    }
+}

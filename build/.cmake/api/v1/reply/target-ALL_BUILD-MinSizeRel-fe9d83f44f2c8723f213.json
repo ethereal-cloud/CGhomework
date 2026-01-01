@@ -1,0 +1,60 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "eulerian2d::@a4aa41d2ef74f1c2316f"
+		},
+		{
+			"id" : "lagrangian3d::@9f666e2a7feba1d84c16"
+		},
+		{
+			"id" : "FluidSimulationSystem::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "imgui::@0bd0160a8608684c225b"
+		},
+		{
+			"id" : "glad::@400044bae19587d17a2e"
+		},
+		{
+			"id" : "common::@bfc844598bd03e848b3c"
+		},
+		{
+			"id" : "lagrangian2d::@98a68d7a5404c3f0e989"
+		},
+		{
+			"id" : "ui::@19b8bf288843bf358763"
+		},
+		{
+			"id" : "eulerian3d::@ba02fb93c0f7347c55c5"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}
