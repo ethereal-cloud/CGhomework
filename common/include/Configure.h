@@ -209,13 +209,17 @@ namespace Lagrangian3dPara
     extern float exponent;
     extern float viscosity;
 
-    // ==================== 运动固体（球体） ====================
-    extern bool enableMovingSphere;          // 是否启用运动球体
-    extern glm::vec3 movingSphereCenter;     // 球体基准中心（未缩放坐标）
-    extern glm::vec3 movingSphereAmplitude;  // 运动幅度（未缩放坐标）
-    extern float movingSphereRadius;         // 球体半径（未缩放坐标）
-    extern float movingSphereFrequency;      // 运动频率（Hz）
-    extern float movingSphereTime;           // 仿真时间（秒）
+    // ==================== 运动固体（搅拌棒） ====================
+    extern bool enableStirrer;               // 是否启用搅拌棒
+    extern glm::vec3 stirrerCenter;          // 基准中心（未缩放坐标）
+    extern float stirrerOrbitRadius;         // 圆周半径（未缩放坐标）
+    extern float stirrerFrequency;           // 运动频率（Hz）
+    extern float stirrerRodRadius;           // 竖杆半径（未缩放坐标）
+    extern float stirrerRodZMin;             // 竖杆底部高度（未缩放坐标）
+    extern float stirrerRodZMax;             // 竖杆顶部高度（未缩放坐标）
+    extern float stirrerBarLength;           // 底部横杠长度（未缩放坐标）
+    extern float stirrerBarZ;                // 底部横杠高度（未缩放坐标）
+    extern float stirrerTime;                // 仿真时间（秒）
 }
 
 // 资源路径

@@ -25,10 +25,10 @@ namespace FluidSimulation
             std::string drawColorFragPath = shaderPath + "/DrawParticles3d.frag";
             shader->buildFromFile(drawColorVertPath, drawColorFragPath);
 
-            sphereShader = new Glb::Shader();
+            solidShader = new Glb::Shader();
             std::string solidVertPath = shaderPath + "/Solid3d.vert";
             std::string solidFragPath = shaderPath + "/Solid3d.frag";
-            sphereShader->buildFromFile(solidVertPath, solidFragPath);
+            solidShader->buildFromFile(solidVertPath, solidFragPath);
 
             // Generate Frame Buffers
             // generate frame buffer object
@@ -64,7 +64,7 @@ namespace FluidSimulation
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glGenBuffers(1, &VBO);
             MakeVertexArrays();
-            buildSphereMesh();
+            buildCylinderMesh();
 
             glEnable(GL_MULTISAMPLE);
 
@@ -83,58 +83,65 @@ namespace FluidSimulation
             glBindVertexArray(0);
         }
 
-        void Renderer::buildSphereMesh()
+        void Renderer::buildCylinderMesh()
         {
-            const int stacks = 16;
             const int slices = 32;
             std::vector<glm::vec3> positions;
             std::vector<uint32_t> indices;
 
-            positions.reserve((stacks + 1) * (slices + 1));
-            for (int i = 0; i <= stacks; i++)
+            positions.reserve((slices + 1) * 2 + 2);
+            for (int i = 0; i <= slices; i++)
             {
-                float v = static_cast<float>(i) / static_cast<float>(stacks);
-                float phi = v * kPi;
-                float sinPhi = std::sin(phi);
-                float cosPhi = std::cos(phi);
-
-                for (int j = 0; j <= slices; j++)
-                {
-                    float u = static_cast<float>(j) / static_cast<float>(slices);
-                    float theta = u * kPi * 2.0f;
-                    float sinTheta = std::sin(theta);
-                    float cosTheta = std::cos(theta);
-
-                    positions.emplace_back(sinPhi * cosTheta, cosPhi, sinPhi * sinTheta);
-                }
+                float u = static_cast<float>(i) / static_cast<float>(slices);
+                float theta = u * kPi * 2.0f;
+                float x = std::cos(theta);
+                float y = std::sin(theta);
+                positions.emplace_back(x, y, -0.5f);
+                positions.emplace_back(x, y, 0.5f);
             }
 
-            indices.reserve(stacks * slices * 6);
-            for (int i = 0; i < stacks; i++)
+            indices.reserve(slices * 12);
+            for (int i = 0; i < slices; i++)
             {
-                for (int j = 0; j < slices; j++)
-                {
-                    uint32_t first = i * (slices + 1) + j;
-                    uint32_t second = first + slices + 1;
-                    indices.push_back(first);
-                    indices.push_back(second);
-                    indices.push_back(first + 1);
-                    indices.push_back(second);
-                    indices.push_back(second + 1);
-                    indices.push_back(first + 1);
-                }
+                uint32_t base = i * 2;
+                indices.push_back(base);
+                indices.push_back(base + 1);
+                indices.push_back(base + 2);
+                indices.push_back(base + 1);
+                indices.push_back(base + 3);
+                indices.push_back(base + 2);
             }
 
-            sphereIndexCount = static_cast<uint32_t>(indices.size());
+            uint32_t bottomCenter = static_cast<uint32_t>(positions.size());
+            positions.emplace_back(0.0f, 0.0f, -0.5f);
+            uint32_t topCenter = static_cast<uint32_t>(positions.size());
+            positions.emplace_back(0.0f, 0.0f, 0.5f);
 
-            glGenVertexArrays(1, &sphereVAO);
-            glGenBuffers(1, &sphereVBO);
-            glGenBuffers(1, &sphereEBO);
+            for (int i = 0; i < slices; i++)
+            {
+                uint32_t bottom0 = i * 2;
+                uint32_t bottom1 = (i + 1) * 2;
+                indices.push_back(bottomCenter);
+                indices.push_back(bottom1);
+                indices.push_back(bottom0);
 
-            glBindVertexArray(sphereVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
+                uint32_t top0 = i * 2 + 1;
+                uint32_t top1 = (i + 1) * 2 + 1;
+                indices.push_back(topCenter);
+                indices.push_back(top0);
+                indices.push_back(top1);
+            }
+
+            solidIndexCount = static_cast<uint32_t>(indices.size());
+
+            glGenVertexArrays(1, &solidVAO);
+            glGenBuffers(1, &solidVBO);
+            glGenBuffers(1, &solidEBO);
+
+            glBindVertexArray(solidVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, solidVBO);
             glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(glm::vec3), positions.data(), GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, solidEBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
 
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
@@ -164,28 +171,50 @@ namespace FluidSimulation
             glDrawArrays(GL_POINTS, 0, particleNum);
             shader->unUse();
 
-            if (Lagrangian3dPara::enableMovingSphere && sphereIndexCount > 0)
+            if (Lagrangian3dPara::enableStirrer && solidIndexCount > 0)
             {
-                float time = Lagrangian3dPara::movingSphereTime;
-                float omega = 2.0f * kPi * Lagrangian3dPara::movingSphereFrequency;
-                float phase = std::sin(omega * time);
-                glm::vec3 baseCenter = Lagrangian3dPara::movingSphereCenter * Lagrangian3dPara::scale;
-                glm::vec3 amplitude = Lagrangian3dPara::movingSphereAmplitude * Lagrangian3dPara::scale;
-                glm::vec3 center = baseCenter + amplitude * phase;
-                float radius = Lagrangian3dPara::movingSphereRadius * Lagrangian3dPara::scale;
+                float time = Lagrangian3dPara::stirrerTime;
+                float omega = 2.0f * kPi * Lagrangian3dPara::stirrerFrequency;
+                float theta = omega * time;
+                float orbitRadius = Lagrangian3dPara::stirrerOrbitRadius * Lagrangian3dPara::scale;
+                glm::vec3 baseCenter = Lagrangian3dPara::stirrerCenter * Lagrangian3dPara::scale;
+                glm::vec3 center = baseCenter + glm::vec3(orbitRadius * std::cos(theta), orbitRadius * std::sin(theta), 0.0f);
 
-                glm::mat4 model(1.0f);
-                model = glm::translate(model, center);
-                model = glm::scale(model, glm::vec3(radius));
+                float rodRadius = Lagrangian3dPara::stirrerRodRadius * Lagrangian3dPara::scale;
+                float rodZMin = Lagrangian3dPara::stirrerRodZMin * Lagrangian3dPara::scale;
+                float rodZMax = Lagrangian3dPara::stirrerRodZMax * Lagrangian3dPara::scale;
+                float barLength = Lagrangian3dPara::stirrerBarLength * Lagrangian3dPara::scale;
+                float barZ = Lagrangian3dPara::stirrerBarZ * Lagrangian3dPara::scale;
 
-                sphereShader->use();
-                sphereShader->setMat4("view", Glb::Camera::getInstance().GetView());
-                sphereShader->setMat4("projection", Glb::Camera::getInstance().GetProjection());
-                sphereShader->setMat4("model", model);
+                solidShader->use();
+                solidShader->setMat4("view", Glb::Camera::getInstance().GetView());
+                solidShader->setMat4("projection", Glb::Camera::getInstance().GetProjection());
 
-                glBindVertexArray(sphereVAO);
-                glDrawElements(GL_TRIANGLES, sphereIndexCount, GL_UNSIGNED_INT, 0);
-                sphereShader->unUse();
+                if (rodZMax > rodZMin && rodRadius > 0.0f)
+                {
+                    float rodLength = rodZMax - rodZMin;
+                    glm::vec3 rodCenter(center.x, center.y, (rodZMin + rodZMax) * 0.5f);
+                    glm::mat4 rodModel(1.0f);
+                    rodModel = glm::translate(rodModel, rodCenter);
+                    rodModel = glm::scale(rodModel, glm::vec3(rodRadius, rodRadius, rodLength));
+                    solidShader->setMat4("model", rodModel);
+                    glBindVertexArray(solidVAO);
+                    glDrawElements(GL_TRIANGLES, solidIndexCount, GL_UNSIGNED_INT, 0);
+                }
+
+                if (barLength > 0.0f && rodRadius > 0.0f)
+                {
+                    glm::mat4 barModel(1.0f);
+                    barModel = glm::translate(barModel, glm::vec3(center.x, center.y, barZ));
+                    barModel = glm::rotate(barModel, theta, glm::vec3(0.0f, 0.0f, 1.0f));
+                    barModel = glm::rotate(barModel, kPi * 0.5f, glm::vec3(0.0f, 1.0f, 0.0f));
+                    barModel = glm::scale(barModel, glm::vec3(rodRadius, rodRadius, barLength));
+                    solidShader->setMat4("model", barModel);
+                    glBindVertexArray(solidVAO);
+                    glDrawElements(GL_TRIANGLES, solidIndexCount, GL_UNSIGNED_INT, 0);
+                }
+
+                solidShader->unUse();
             }
 
             container->draw();

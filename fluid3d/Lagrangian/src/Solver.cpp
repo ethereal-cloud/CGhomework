@@ -41,6 +41,55 @@ namespace FluidSimulation
 {
     namespace Lagrangian3d
     {
+        namespace
+        {
+            void resolveCylinderCollision(particle3d &pi,
+                                          const glm::vec3 &a,
+                                          const glm::vec3 &b,
+                                          float radius,
+                                          const glm::vec3 &bodyVelocity,
+                                          float attenuation)
+            {
+                glm::vec3 ab = b - a;
+                float abLen2 = glm::dot(ab, ab);
+                if (abLen2 < 1e-8f)
+                {
+                    return;
+                }
+
+                float t = glm::dot(pi.position - a, ab) / abLen2;
+                if (t < 0.0f)
+                {
+                    t = 0.0f;
+                }
+                else if (t > 1.0f)
+                {
+                    t = 1.0f;
+                }
+
+                glm::vec3 closest = a + ab * t;
+                glm::vec3 delta = pi.position - closest;
+                float dist2 = glm::dot(delta, delta);
+                float radius2 = radius * radius;
+                if (dist2 >= radius2)
+                {
+                    return;
+                }
+
+                float dist = std::sqrt(dist2);
+                glm::vec3 normal = (dist > 1e-6f) ? (delta / dist) : glm::vec3(0.0f, 1.0f, 0.0f);
+                pi.position = closest + normal * radius;
+
+                glm::vec3 relVel = pi.velocity - bodyVelocity;
+                float vn = glm::dot(relVel, normal);
+                if (vn < 0.0f)
+                {
+                    relVel -= (1.0f + attenuation) * vn * normal;
+                }
+                pi.velocity = relVel + bodyVelocity;
+            }
+        }
+
         /**
          * 构造函数，保存对粒子系统的引用
          * @param ps 粒子系统引用
@@ -182,23 +231,35 @@ namespace FluidSimulation
                              Lagrangian3dPara::gravityY,
                              Lagrangian3dPara::gravityZ);     // 重力
 
-            // 运动球体参数（未开启时保持默认值）
-            Lagrangian3dPara::movingSphereTime += dt;
-            float sphereTime = Lagrangian3dPara::movingSphereTime;
-            bool useMovingSphere = Lagrangian3dPara::enableMovingSphere;
-            glm::vec3 sphereCenter(0.0f);
-            glm::vec3 sphereVelocity(0.0f);
-            float sphereRadius = 0.0f;
-            if (useMovingSphere)
+            // 搅拌棒参数（未开启时保持默认值）
+            Lagrangian3dPara::stirrerTime += dt;
+            float stirrerTime = Lagrangian3dPara::stirrerTime;
+            bool useStirrer = Lagrangian3dPara::enableStirrer;
+            glm::vec3 stirrerCenter(0.0f);
+            glm::vec3 stirrerVelocity(0.0f);
+            glm::vec3 barAxis(1.0f, 0.0f, 0.0f);
+            float rodRadius = 0.0f;
+            float rodZMin = 0.0f;
+            float rodZMax = 0.0f;
+            float barLength = 0.0f;
+            float barZ = 0.0f;
+            if (useStirrer)
             {
-                float omega = 2.0f * static_cast<float>(M_PI) * Lagrangian3dPara::movingSphereFrequency;
-                float phase = std::sin(omega * sphereTime);
-                float velPhase = std::cos(omega * sphereTime) * omega;
-                glm::vec3 baseCenter = Lagrangian3dPara::movingSphereCenter * Lagrangian3dPara::scale;
-                glm::vec3 amplitude = Lagrangian3dPara::movingSphereAmplitude * Lagrangian3dPara::scale;
-                sphereCenter = baseCenter + amplitude * phase;
-                sphereVelocity = amplitude * velPhase;
-                sphereRadius = Lagrangian3dPara::movingSphereRadius * Lagrangian3dPara::scale;
+                float omega = 2.0f * static_cast<float>(M_PI) * Lagrangian3dPara::stirrerFrequency;
+                float theta = omega * stirrerTime;
+                float orbitRadius = Lagrangian3dPara::stirrerOrbitRadius * Lagrangian3dPara::scale;
+                glm::vec3 baseCenter = Lagrangian3dPara::stirrerCenter * Lagrangian3dPara::scale;
+                stirrerCenter = baseCenter + glm::vec3(orbitRadius * std::cos(theta), orbitRadius * std::sin(theta), 0.0f);
+                stirrerVelocity = glm::vec3(-orbitRadius * omega * std::sin(theta),
+                                            orbitRadius * omega * std::cos(theta),
+                                            0.0f);
+
+                barAxis = glm::vec3(std::cos(theta), std::sin(theta), 0.0f);
+                rodRadius = Lagrangian3dPara::stirrerRodRadius * Lagrangian3dPara::scale;
+                rodZMin = Lagrangian3dPara::stirrerRodZMin * Lagrangian3dPara::scale;
+                rodZMax = Lagrangian3dPara::stirrerRodZMax * Lagrangian3dPara::scale;
+                barLength = Lagrangian3dPara::stirrerBarLength * Lagrangian3dPara::scale;
+                barZ = Lagrangian3dPara::stirrerBarZ * Lagrangian3dPara::scale;
             }
 
             // 粒子质量：假设初始时每个粒子占据 particleDiameter³ 的体积，密度为 rho0
@@ -375,32 +436,29 @@ namespace FluidSimulation
             //
             float eps = Lagrangian3dPara::eps;
             float attenuation = Lagrangian3dPara::velocityAttenuation;
-            float minSphereDist = sphereRadius + mPs.particleRadius;
-            float minSphereDist2 = minSphereDist * minSphereDist;
 
             #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 particle3d &pi = mPs.particles[i];
 
-                // 运动球体碰撞
-                if (useMovingSphere && sphereRadius > 0.0f)
+                // 搅拌棒碰撞（竖杆 + 底部横杠）
+                if (useStirrer && rodRadius > 0.0f)
                 {
-                    glm::vec3 toParticle = pi.position - sphereCenter;
-                    float dist2 = glm::dot(toParticle, toParticle);
-                    if (dist2 < minSphereDist2)
+                    float combinedRadius = rodRadius + mPs.particleRadius;
+                    if (rodZMax > rodZMin)
                     {
-                        float dist = std::sqrt(dist2);
-                        glm::vec3 normal = (dist > 1e-6f) ? (toParticle / dist) : glm::vec3(0.0f, 1.0f, 0.0f);
-                        pi.position = sphereCenter + normal * minSphereDist;
-
-                        glm::vec3 relVel = pi.velocity - sphereVelocity;
-                        float vn = glm::dot(relVel, normal);
-                        if (vn < 0.0f)
-                        {
-                            relVel -= (1.0f + attenuation) * vn * normal;
-                        }
-                        pi.velocity = relVel + sphereVelocity;
+                        glm::vec3 a(stirrerCenter.x, stirrerCenter.y, rodZMin);
+                        glm::vec3 b(stirrerCenter.x, stirrerCenter.y, rodZMax);
+                        resolveCylinderCollision(pi, a, b, combinedRadius, stirrerVelocity, attenuation);
+                    }
+                    if (barLength > 0.0f)
+                    {
+                        glm::vec3 barCenter(stirrerCenter.x, stirrerCenter.y, barZ);
+                        glm::vec3 halfAxis = barAxis * (barLength * 0.5f);
+                        glm::vec3 a = barCenter - halfAxis;
+                        glm::vec3 b = barCenter + halfAxis;
+                        resolveCylinderCollision(pi, a, b, combinedRadius, stirrerVelocity, attenuation);
                     }
                 }
 
