@@ -20,8 +20,6 @@ namespace FluidSimulation
 
             size *= Lagrangian3dPara::scale;
 
-            // lowerBound = corner - supportRadius + particleDiameter;
-            // upperBound = corner + size + supportRadius - particleDiameter;
             lowerBound = corner;
             upperBound = corner + size;
             containerCenter = (lowerBound + upperBound) / 2.0f;
@@ -118,27 +116,53 @@ namespace FluidSimulation
 
         void ParticleSystem3d::updateBlockInfo()
         {
-            std::sort(particles.begin(), particles.end(),
-                      [=](particle3d &first, particle3d &second)
-                      {
-                          return first.blockId < second.blockId;
-                      });
-
-
-            blockExtens = std::vector<glm::uvec2>(blockNum.x * blockNum.y * blockNum.z, glm::uvec2(0, 0));
-            int curBlockId = 0;
-            int left = 0;
-            int right;
-            for (right = 0; right < particles.size(); right++)
+            const uint32_t totalBlocks = blockNum.x * blockNum.y * blockNum.z;
+            blockExtens = std::vector<glm::uvec2>(totalBlocks, glm::uvec2(0, 0));
+            if (particles.empty() || totalBlocks == 0)
             {
-                if (particles[right].blockId != curBlockId)
+                return;
+            }
+
+            // Bucket sort by blockId for O(N) grouping.
+            std::vector<uint32_t> counts(totalBlocks, 0);
+            for (auto &p : particles)
+            {
+                uint32_t id = p.blockId;
+                if (id >= totalBlocks)
                 {
-                    blockExtens[curBlockId] = glm::uvec2(left, right);
-                    left = right;
-                    curBlockId = particles[right].blockId;
+                    id = getBlockIdByPosition(p.position);
+                    p.blockId = id;
+                }
+                if (id < totalBlocks)
+                {
+                    counts[id]++;
                 }
             }
-            blockExtens[curBlockId] = glm::uvec2(left, right);
+
+            std::vector<uint32_t> offsets(totalBlocks, 0);
+            uint32_t running = 0;
+            for (uint32_t i = 0; i < totalBlocks; i++)
+            {
+                offsets[i] = running;
+                running += counts[i];
+            }
+
+            std::vector<particle3d> sorted(particles.size());
+            std::vector<uint32_t> cursor = offsets;
+            for (auto &p : particles)
+            {
+                uint32_t id = p.blockId;
+                if (id < totalBlocks)
+                {
+                    sorted[cursor[id]++] = p;
+                }
+            }
+            particles.swap(sorted);
+
+            for (uint32_t i = 0; i < totalBlocks; i++)
+            {
+                blockExtens[i] = glm::uvec2(offsets[i], offsets[i] + counts[i]);
+            }
         }
 
     }
