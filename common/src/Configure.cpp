@@ -83,12 +83,9 @@ namespace Lagrangian2dPara
     float scale = 2;
 
     // 流体块初始配置
-    // 喷泉模式：清空初始流体块，让粒子从喷泉发射
-    // 原始配置（如需还原）：
-    // std::vector<FluidBlock> fluidBlocks = {
-    //     {glm::vec2(-0.4f, -0.4f), glm::vec2(0.4f, 0.4f), glm::vec2(0.0f, 0.0f), 0.02f}
-    // };
-    std::vector<FluidBlock> fluidBlocks = {};  // 喷泉模式：初始无粒子
+    std::vector<FluidBlock> fluidBlocks = {
+        {glm::vec2(-0.4f, -0.4f), glm::vec2(0.4f, 0.4f), glm::vec2(0.0f, 0.0f), 0.02f}
+    };
 
     // 求解器设置
     float dt = 0.0016;              // 时间步长
@@ -109,7 +106,7 @@ namespace Lagrangian2dPara
     float viscosity = 0.03f;        // 粘度
 
     // ==================== 喷泉参数 ====================
-    bool enableFountain = true;                          // 启用喷泉模式
+    bool enableFountain = false;                         // 禁用喷泉模式
     glm::vec2 fountainPosition = glm::vec2(0.0f, -0.45f); // 喷泉位置（容器底部中央）
     glm::vec2 fountainVelocity = glm::vec2(0.0f, 10.0f);  // 喷射初速度（向上）
     float fountainSpread = 0.05f;                        // 喷口宽度
@@ -123,36 +120,36 @@ namespace Lagrangian3dPara
     // 缩放系数
     float scale = 1.2;
     
-    // 流体块初始配置
+    // 流体块初始配置（两个对角分布的粒子块）
     std::vector<FluidBlock> fluidBlocks = {
         {
-            glm::vec3(0.05, 0.05, 0.3), glm::vec3(0.45, 0.45, 0.7), glm::vec3(0.0, 0.0, -1.0), 0.02f
+            glm::vec3(0.05, 0.05, 0.3), glm::vec3(0.45, 0.45, 0.7), glm::vec3(0.0, 0.0, -1.0), 0.03f
         },
         {
-            glm::vec3(0.45, 0.45, 0.3), glm::vec3(0.85, 0.85, 0.7), glm::vec3(0.0, 0.0, -1.0), 0.02f
+            glm::vec3(0.45, 0.45, 0.3), glm::vec3(0.85, 0.85, 0.7), glm::vec3(0.0, 0.0, -1.0), 0.03f
         }   
     };
     
     // 求解器设置
     float dt = 0.002;               // 时间步长
     int substep = 1;                // 子步数
-    float maxVelocity = 10;         // 最大允许速度
-    float velocityAttenuation = 0.7; // 碰撞后的速度衰减系数
+    float maxVelocity = 15;         // 最大允许速度
+    float velocityAttenuation = 0.5; // 碰撞后的速度衰减系数（提高到与2D相近）
     float eps = 1e-5;               // 一个很小的距离，用于边界处理
 
     // 粒子系统参数
-    float supportRadius = 0.04;      // 支持半径
-    float particleRadius = 0.01;     // 粒子半径
-    float particleDiameter = particleRadius * 2.0;  // 粒子直径
+    float particleRadius = 0.015;    // 粒子半径（匹配粒子间距的一半）
+    float particleDiameter = particleRadius * 2.0;  // 粒子直径 = 0.03
+    float supportRadius = 0.06;      // 支持半径（2倍粒子直径，标准SPH配置）
 
     float gravityX = 0.0f;          // x轴重力
     float gravityY = 0.0f;          // y轴重力
-    float gravityZ = 9.8f;          // z轴重力
+    float gravityZ = -9.8f;         // z轴重力（向下为负）
 
     float density = 1000.0f;        // 密度
-    float stiffness = 20.0f;        // 刚度
+    float stiffness = 70.0f;        // 刚度（与2D一致）
     float exponent = 7.0f;          // 压力指数
-    float viscosity = 8e-5f;        // 粘度
+    float viscosity = 0.02f;        // 粘度（增大到与2D相近的水平）
 }
 
 // 存储系统的所有组件
