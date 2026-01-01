@@ -1,0 +1,59 @@
+# ==========================
+# 编译产物 - 绝对不要提交
+# ==========================
+build/
+out/
+cmake-build-*/
+x64/
+x86/
+Debug/
+Release/
+MinSizeRel/
+RelWithDebInfo/
+
+# 二进制文件
+*.exe
+*.obj
+*.o
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.pdb
+*.ilk
+*.idb
+*.exp
+
+# ==========================
+# IDE 和编辑器配置 - 个人设置
+# ==========================
+.vscode/
+.vs/
+.idea/
+*.suo
+*.user
+*.sln.docstates
+
+# Claude Code 本地设置
+.claude/
+
+# CMake 本地配置
+CMakeSettings.json
+CMakeUserPresets.json
+
+# ==========================
+# 系统文件
+# ==========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================
+# 临时文件
+# ==========================
+*.tmp
+*.temp
+*.log
+*.swp
+*~
