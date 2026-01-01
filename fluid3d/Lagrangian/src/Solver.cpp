@@ -27,6 +27,11 @@
 #include <algorithm>
 #include <cmath>
 
+// OpenMP支持
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // 数学常量
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -189,6 +194,7 @@ namespace FluidSimulation
             //
             // 即：粒子 i 的密度 = 所有邻居粒子 j 的质量 × 核函数值 的总和
             //
+            #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 particle3d &pi = mPs.particles[i];
@@ -238,6 +244,7 @@ namespace FluidSimulation
             // - 当 ρ < ρ₀ 时，p < 0，产生吸引力
             // - exponent 通常取 7（水）
             //
+            #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 particle3d &pi = mPs.particles[i];
@@ -264,6 +271,7 @@ namespace FluidSimulation
             // 重力加速度：
             //   a_gravity = g
             //
+            #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 particle3d &pi = mPs.particles[i];
@@ -321,6 +329,7 @@ namespace FluidSimulation
             //
             float maxVel = Lagrangian3dPara::maxVelocity;
 
+            #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 particle3d &pi = mPs.particles[i];
@@ -348,6 +357,7 @@ namespace FluidSimulation
             float eps = Lagrangian3dPara::eps;
             float attenuation = Lagrangian3dPara::velocityAttenuation;
 
+            #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 particle3d &pi = mPs.particles[i];
@@ -394,6 +404,7 @@ namespace FluidSimulation
             // 粒子位置改变后，需要重新计算它们所属的块
             // （updateBlockInfo 会在下一帧 simulate() 开始时调用，这里只更新 blockId）
             //
+            #pragma omp parallel for
             for (int i = 0; i < numParticles; i++)
             {
                 mPs.particles[i].blockId = mPs.getBlockIdByPosition(mPs.particles[i].position);

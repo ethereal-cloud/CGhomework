@@ -20,8 +20,10 @@ namespace FluidSimulation
 
             size *= Lagrangian3dPara::scale;
 
-            lowerBound = corner - supportRadius + particleDiameter;
-            upperBound = corner + size + supportRadius - particleDiameter;
+            // lowerBound = corner - supportRadius + particleDiameter;
+            // upperBound = corner + size + supportRadius - particleDiameter;
+            lowerBound = corner;
+            upperBound = corner + size;
             containerCenter = (lowerBound + upperBound) / 2.0f;
             size = upperBound - lowerBound;
 
