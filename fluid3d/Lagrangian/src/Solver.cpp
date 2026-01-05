@@ -511,7 +511,7 @@ namespace FluidSimulation
                 // 搅拌棒碰撞（竖杆 + 底部横杠）
                 if (useStirrer && rodRadius > 0.0f)
                 {
-                    float combinedRadius = rodRadius + mPs.particleRadius;
+                    float combinedRadius = rodRadius + mPs.particleRadius * 0.05f;
                     if (rodZMax > rodZMin)
                     {
                         glm::vec3 a(stirrerCenter.x, stirrerCenter.y, rodZMin);
