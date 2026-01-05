@@ -7,7 +7,8 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float scale;
 
-out vec3 color;
+out vec3 vColor;
+out float vDepth;
 
 vec3 ValueToColor(float value) {
     vec3 color;
@@ -30,8 +31,9 @@ vec3 ValueToColor(float value) {
 }
 
 void main() {
-    gl_PointSize = 3;
-    gl_Position = projection * view * vec4(position/scale, 1.0);
-
-    color = ValueToColor((density - 500.0) / 2000.0);
+    vec4 viewPos = view * vec4(position / scale, 1.0);
+    gl_Position = projection * viewPos;
+    gl_PointSize = 6.0;
+    vDepth = -viewPos.z;
+    vColor = ValueToColor((density - 500.0) / 2000.0);
 }
