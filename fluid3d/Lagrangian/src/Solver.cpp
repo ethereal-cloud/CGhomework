@@ -236,7 +236,7 @@ namespace FluidSimulation
                              Lagrangian3dPara::gravityY,
                              Lagrangian3dPara::gravityZ);     // 重力
 
-            // 搅拌棒参数（未开启时保持默认值）
+            // 搅拌棒参数
             Lagrangian3dPara::stirrerTime += dt;
             float stirrerTime = Lagrangian3dPara::stirrerTime;
             bool useStirrer = Lagrangian3dPara::enableStirrer;
@@ -508,7 +508,7 @@ namespace FluidSimulation
             {
                 particle3d &pi = mPs.particles[i];
 
-                // 搅拌棒碰撞（竖杆 + 底部横杠）
+                // 搅拌棒碰撞
                 if (useStirrer && rodRadius > 0.0f)
                 {
                     float combinedRadius = rodRadius + mPs.particleRadius * 0.05f;
